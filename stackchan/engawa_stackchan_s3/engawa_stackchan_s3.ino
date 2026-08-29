@@ -9,8 +9,8 @@
 #include "esp_camera.h"
 
 // ==== 会場で書き換える設定 ====
-const char* WIFI_SSID  = "Deeptech-CORE";
-const char* WIFI_PASS  = "deeptechcore";
+const char* WIFI_SSID  = "***";
+const char* WIFI_PASS  = "***";
 const char* SERVER_URL = "http://192.168.96.15:8787";
 // サーボ(物理首振り)。Takao-Base(CoreS3)のPort C想定。動かなければピン変更 or USE_SERVO 0
 #define USE_SERVO 1
