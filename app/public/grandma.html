@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>えんがわポスト — おばあちゃんの縁側</title>
+<style>
+:root{--ink:#3a3226;--accent:#b5623a;--soft:#e0d5bd;--card:#fffdf6;--wood1:#8b5e3c;--wood2:#7a5233;--wood3:#6b4629}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;color:var(--ink);font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  /* bg.jpg を public/ に置けば自動で差し替わる。無ければ夕暮れの空グラデ */
+  background-image:url('bg.jpg'),
+    radial-gradient(520px 520px at 78% 30%, rgba(255,214,150,.85) 0%, rgba(255,214,150,0) 62%),
+    linear-gradient(#fbe7c4 0%, #f8d9a8 45%, #eec090 70%, #e0a878 100%);
+  background-size:cover,auto,auto;background-position:center;background-attachment:fixed}
+/* 縁側の床 */
+#floor{position:fixed;left:0;right:0;bottom:0;height:130px;z-index:0;
+  background:
+    linear-gradient(rgba(0,0,0,.18), rgba(0,0,0,0) 12%),
+    repeating-linear-gradient(90deg, var(--wood1) 0 86px, var(--wood3) 86px 90px),
+    linear-gradient(var(--wood1), var(--wood2));
+  border-top:6px solid #5d3d23}
+main{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:26px 24px 150px;text-align:center}
+h1{font-size:25px;letter-spacing:.3em;margin:0 0 4px;color:#5d4326;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.sub{font-size:13px;color:#8a6b45;letter-spacing:.15em;margin-bottom:26px}
+#status{font-size:20px;color:#7a5f3d;margin:40px 0}
+#startBtn{font-size:26px;padding:22px 46px;border-radius:16px;border:1px solid var(--soft);background:var(--card);color:var(--ink);cursor:pointer;letter-spacing:.15em;box-shadow:0 8px 24px rgba(90,60,20,.18)}
+#card{display:none;position:relative;background:
+  repeating-linear-gradient(transparent 0 34px, rgba(180,150,100,.07) 34px 35px), var(--card);
+  border:1px solid var(--soft);border-radius:6px;padding:34px 30px 30px;
+  box-shadow:0 14px 40px rgba(90,60,20,.22);transform:rotate(-.5deg)}
+#card::after{content:"縁";position:absolute;top:16px;right:18px;width:44px;height:44px;line-height:44px;
+  border:2.5px solid #c0392b;border-radius:50%;color:#c0392b;font-size:22px;transform:rotate(6deg);opacity:.85}
+#photo{width:min(400px,78vw);border-radius:4px;border:6px solid #fff;box-shadow:0 4px 14px rgba(90,60,20,.25);display:none;transform:rotate(.6deg)}
+#text{font-size:30px;line-height:2;margin:24px 0;white-space:pre-wrap;text-align:left}
+#when{font-size:16px;color:#8a7d68;text-align:right}
+button{font-family:inherit;cursor:pointer;border-radius:16px;border:1px solid var(--soft);background:var(--card);color:var(--ink)}
+#againBtn{font-size:22px;padding:14px 28px;margin:10px}
+#replyBtn{font-size:26px;padding:20px 40px;margin:10px;background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(150,80,40,.35)}
+#overlay{display:none;position:fixed;inset:0;background:rgba(40,30,20,.92);flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:10}
+#overlay video{width:min(560px,90vw);border-radius:16px}
+#snapBtn{font-size:28px;padding:22px 46px;background:var(--accent);border-color:var(--accent);color:#fff}
+#thanks{display:none;font-size:26px;letter-spacing:.2em;margin:36px 0;color:#5d4326}
+</style>
+</head>
+<body>
+<div id="floor"></div>
+<main>
+  <h1>えんがわポスト</h1>
+  <div class="sub">— 北海道の孫より、岐阜のおばあちゃんへ —</div>
+  <div id="status"><button id="startBtn">は じ め る</button></div>
+  <div id="card">
+    <img id="photo">
+    <div id="text"></div>
+    <div id="when"></div>
+    <div style="margin-top:16px;text-align:center">
+      <button id="againBtn">もういちど聞く</button>
+      <button id="replyBtn">お返事する(顔だけでいいよ)</button>
+    </div>
+  </div>
+  <div id="thanks">— お返事、届けました —</div>
+</main>
+<div id="overlay">
+  <video id="cam" autoplay playsinline muted></video>
+  <button id="snapBtn">この顔を送る</button>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+let current=null;let stream=null;let lastTs=0;
+
+function speak(t){
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t);
+    u.lang='ja-JP';u.rate=0.85;u.pitch=1.05;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function show(m){
+  current=m;
+  $('#card').style.display='block';
+  if(m.photo){$('#photo').src=m.photo;$('#photo').style.display='inline';}
+  else $('#photo').style.display='none';
+  $('#text').textContent=m.text;
+  $('#when').textContent=new Date(m.ts).toLocaleString('ja-JP',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})+' 北海道の孫より';
+  speak('お便りが届きました。'+m.text);
+}
+$('#startBtn').onclick=()=>{
+  $('#status').innerHTML='お便りを待っています……';
+  speak('えんがわポストを、はじめます。');
+  setInterval(async()=>{
+    try{
+      const r=await fetch('/api/letter?since='+lastTs);
+      const j=await r.json();
+      if(j.letter){lastTs=j.letter.ts;$('#status').style.display='none';show(j.letter);}
+    }catch(e){}
+  },2000);
+};
+$('#againBtn').onclick=()=>{if(current)speak(current.text);};
+$('#replyBtn').onclick=async()=>{
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640}});
+    $('#cam').srcObject=stream;
+    $('#overlay').style.display='flex';
+  }catch(e){alert('カメラを使えませんでした: '+e.message);}
+};
+$('#snapBtn').onclick=async()=>{
+  const v=$('#cam');const c=document.createElement('canvas');
+  c.width=480;c.height=480*v.videoHeight/v.videoWidth;
+  c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+  const photo=c.toDataURL('image/jpeg',.8);
+  if(stream)stream.getTracks().forEach(t=>t.stop());
+  $('#overlay').style.display='none';
+  await fetch('/api/reply',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({photo})});
+  $('#thanks').style.display='block';
+  speak('お返事を届けました。');
+};
+</script>
+</body>
+</html>
