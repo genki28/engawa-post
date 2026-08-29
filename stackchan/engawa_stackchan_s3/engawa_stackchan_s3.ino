@@ -9,9 +9,9 @@
 #include "esp_camera.h"
 
 // ==== 会場で書き換える設定 ====
-const char* WIFI_SSID  = "YOUR_WIFI_SSID";
-const char* WIFI_PASS  = "YOUR_WIFI_PASS";
-const char* SERVER_URL = "http://192.168.0.10:8787";
+const char* WIFI_SSID  = "Deeptech-CORE";
+const char* WIFI_PASS  = "deeptechcore";
+const char* SERVER_URL = "http://192.168.96.15:8787";
 // ================================
 
 #define CAM_XCLK 2
@@ -113,6 +113,35 @@ void onLetter() {
   else if (mood == "sad") { faceY = 8; drawFace(); }  // 悲しい: うつむいたまま読む
   else                      nod(1, 6, 14);        // warm: ひとつ頷く
   startTalking();
+}
+
+void showPhoto() {   // 孫の顔写真を表示(あれば)
+  HTTPClient hp;
+  hp.setTimeout(4000);
+  hp.begin(String(SERVER_URL) + "/api/letter/photo.jpg");
+  int code = hp.GET();
+  if (code == 200) {
+    int len = hp.getSize();
+    if (len > 0 && len < 200000) {
+      uint8_t* buf = (uint8_t*)malloc(len);
+      if (buf) {
+        WiFiClient* s = hp.getStreamPtr();
+        int got = 0; unsigned long t0 = millis();
+        while (got < len && millis() - t0 < 5000) {
+          int r = s->read(buf + got, len - got);
+          if (r > 0) got += r; else delay(5);
+        }
+        if (got == len) {
+          M5.Display.fillScreen(INK);
+          M5.Display.drawJpg(buf, len, 40, 20, 240, 200, 0, 0, 0.5f);
+          delay(3500);
+          M5.Display.fillScreen(BG);
+        }
+        free(buf);
+      }
+    }
+  }
+  hp.end();
 }
 
 bool initCamera() {
@@ -224,6 +253,7 @@ void loop() {
           mood          = body.substring(n1 + 1, n2);
           highlightText = body.substring(n2 + 1, n3);
           letterText    = body.substring(n3 + 1);
+          showPhoto();
           onLetter();
         }
       }

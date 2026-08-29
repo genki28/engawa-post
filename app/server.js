@@ -74,6 +74,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     // お便り(孫→祖母)。スタックチャン等の物理端末も GET /api/letter をポーリングするだけで受信できる
+    if (u.pathname === '/api/letter/photo.jpg') {
+      if (latestLetter && latestLetter.photo) {
+        const buf = Buffer.from(latestLetter.photo.split(',')[1], 'base64');
+        res.writeHead(200, { 'content-type': 'image/jpeg', 'content-length': buf.length });
+        return res.end(buf);
+      }
+      res.writeHead(404); return res.end('');
+    }
     if (u.pathname === '/api/letter/plain') {
       const since = u.searchParams.get('since') || '0';
       res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });

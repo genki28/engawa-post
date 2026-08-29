@@ -53,28 +53,67 @@ h1::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:4px;back
   repeating-linear-gradient(transparent 0 26px, rgba(180,150,100,.08) 26px 27px), #fffdf8}
 #sentMark{color:var(--accent)}
 .bar{background:rgba(250,246,239,.95);backdrop-filter:blur(4px)}
+
+/* --- 手紙モーダル --- */
+#letterModal{position:fixed;inset:0;background:rgba(40,30,20,.55);display:none;align-items:center;justify-content:center;z-index:20;padding:20px}
+#letterPaper{background:repeating-linear-gradient(transparent 0 34px, rgba(180,150,100,.12) 34px 35px),#fffdf6;border:1px solid #d8c9a8;border-radius:4px;max-width:600px;width:100%;max-height:88vh;overflow:auto;padding:30px 28px 20px;box-shadow:0 20px 60px rgba(40,25,10,.45);position:relative;transform:rotate(-.3deg)}
+#letterPaper::after{content:"縁";position:absolute;top:14px;right:16px;width:40px;height:40px;line-height:40px;text-align:center;border:2.5px solid #c0392b;border-radius:50%;color:#c0392b;font-size:20px;transform:rotate(6deg);opacity:.85}
+.lp-head{font-size:18px;letter-spacing:.2em;margin-bottom:10px}
+.lp-from{text-align:right;color:#8a7d68;font-size:13px;margin-top:14px}
+.lp-actions{margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#letterModal .letter{background:transparent}
+#editArea{background:transparent;border-style:dashed}
+#shot{width:120px}
+
+#chips{display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start;margin-left:4px}
+.chip{font-size:13px;padding:8px 14px;border-radius:18px;border:1px dashed var(--accent);color:var(--accent);background:transparent;cursor:pointer}
+.chip:disabled{opacity:.4}
 </style>
 </head>
 <body>
 <header><h1>えんがわポスト</h1><small>言葉にならない日の、お便り</small><span id="mode">…</span></header>
 <main>
   <div id="chat">
-    <div class="msg ai">こんにちは。今日は、どんな気持ちでここに来ましたか。うまく言葉にならなくても、切れはしだけで大丈夫ですよ。腰が重い日は、下の「きっかけをもらう」を押すだけでもいいです。</div>
+    <div class="msg ai">こんにちは。今日は、どんな気持ちでここに来ましたか。うまく言葉にならなくても、切れはしだけで大丈夫。腰が重い日は、下の選択肢から始めてもいいですよ。</div>
   </div>
 
-  <div class="section" id="letterSec" style="display:none">
-    <h2>お便りの案 — しっくりくるものを選んで、直してください</h2>
-    <div id="letters"></div>
-    <textarea id="editArea" placeholder="選んだ案がここに入ります"></textarea>
-    <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <button id="camBtn">顔を添える</button>
-      <video id="cam" class="hid" width="220" autoplay playsinline muted></video>
-      <button id="shotBtn" class="hid">この顔で</button>
-      <img id="shot" class="hid">
-      <button id="sendBtn" class="primary" disabled>おばあちゃんに送る</button>
+  <div id="letterModal">
+    <div id="letterPaper">
+      <div class="lp-head">おばあちゃんへ</div>
+      <div id="composeSec">
+        <div class="note" style="margin-bottom:8px">いまの顔とひと言を添えて、お便りにしてもらいます</div>
+        <video id="composeCam" autoplay playsinline muted style="width:100%;max-height:260px;border-radius:8px;background:#1d1712;object-fit:cover"></video>
+        <input id="hitokoto" placeholder="いまのひと言(任意)" style="width:100%;margin-top:10px;padding:10px;font-family:inherit;font-size:15px;border:1px dashed var(--soft);border-radius:8px;background:transparent;box-sizing:border-box">
+        <div class="lp-actions">
+          <button id="composeGo" class="primary">この顔とひと言で、お便りにしてもらう</button>
+          <button id="closeModal">また話す</button>
+        </div>
+      </div>
+      <div id="pickSec" style="display:none">
+        <div class="note" style="margin-bottom:8px">しっくりくる案を選んで、手直ししてください</div>
+        <div id="letters"></div>
+        <textarea id="editArea" placeholder="選んだ案がここに入ります"></textarea>
+        <div class="lp-actions">
+          <button id="camBtn">顔を撮り直す</button>
+          <video id="cam" class="hid" width="180" autoplay playsinline muted></video>
+          <button id="shotBtn" class="hid">この顔で</button>
+          <img id="shot" class="hid">
+          <button id="sendBtn" class="primary" disabled>おばあちゃんに送る</button>
+          <button id="closeModal2">また話す</button>
+        </div>
+      </div>
+      <div class="lp-from">— 北海道の孫より</div>
     </div>
-    <p class="note">※ 受け取り側(grandma.html)を別ウィンドウで開いておくと、その場で届きます。</p>
   </div>
+
+  <details class="section" style="margin-top:30px">
+    <summary style="cursor:pointer;font-size:14px;color:#8a7d68;font-family:sans-serif">デモ用サンプル便り(ワンクリックで送信)</summary>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button data-demo="happy">嬉しい便り → 頷き+笑顔</button>
+      <button data-demo="sad">悲しい便り → うつむく</button>
+      <button data-demo="warm">ふつうの便り → ひとつ頷く</button>
+    </div>
+  </details>
 
   <div id="sentMark" class="hid">— 届きました —</div>
   <div id="replies"></div>
@@ -91,10 +130,8 @@ h1::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:4px;back
 <div class="bar"><div class="inner">
   <textarea id="input" rows="2" placeholder="話すことから、はじめてみる(マイクでも)"></textarea>
   <button id="micBtn">🎙</button>
-  <button id="talkBtn" class="primary">話す</button>
-  <button id="nudgeBtn">きっかけを<br>もらう</button>
-  <button id="faceBtn">顔から<br>読み取る</button>
-  <button id="makeBtn">お便りに<br>してもらう</button>
+  <button id="talkBtn">話す</button>
+  <button id="makeBtn" class="primary">お便りを<br>つくる</button>
 </div></div>
 
 <script>
@@ -103,11 +140,24 @@ let history=[];let photoData=null;let stream=null;let lastReplyTs=0;
 
 fetch('/api/health').then(r=>r.json()).then(h=>{$('#mode').textContent=h.hasKey?'Claude接続 ('+h.model+')':'モックモード(キー未設定)';}).catch(()=>{$('#mode').textContent='サーバ未接続';});
 
+function setBusy(b){['talkBtn','makeBtn'].forEach(id=>{const e=$('#'+id);if(e)e.disabled=b;});document.querySelectorAll('.chip').forEach(x=>x.disabled=b);}
+function removeChips(){const e=$('#chips');if(e)e.remove();}
+function showChips(){
+  removeChips();
+  const w=document.createElement('div');w.id='chips';
+  [['きっかけをもらう',()=>doNudge()],['顔から読み取る',()=>doFace()]].forEach(([label,fn])=>{
+    const b=document.createElement('button');b.className='chip';b.textContent=label;b.onclick=fn;w.appendChild(b);
+  });
+  $('#chat').appendChild(w);
+  w.scrollIntoView({behavior:'smooth',block:'end'});
+}
 function addMsg(role,text){
+  removeChips();
   const d=document.createElement('div');
   d.className='msg '+(role==='user'?'me':'ai');
   d.textContent=text;
   $('#chat').appendChild(d);
+  if(role!=='user')showChips();
   d.scrollIntoView({behavior:'smooth',block:'end'});
 }
 
@@ -143,14 +193,14 @@ async function talk(){
   $('#input').value='';
   addMsg('user',t);
   history.push({role:'user',content:t});
-  $('#talkBtn').disabled=true;
+  setBusy(true);
   try{
     let out=await chat(history,LISTEN_SYS,300);
     if(out===null)out=MOCK_REPLIES[mockIdx++%MOCK_REPLIES.length];
     addMsg('assistant',out);
     history.push({role:'assistant',content:out});
   }catch(e){addMsg('assistant','(通信エラー: '+e.message+')');}
-  $('#talkBtn').disabled=false;
+  setBusy(false);
 }
 $('#talkBtn').onclick=talk;
 $('#input').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();talk();}});
@@ -162,15 +212,15 @@ const MOCK_NUDGES=[
  '北海道はもう涼しいですか。岐阜の夏と、どっちが好きですか。',
  '子どものころ、おばあちゃんの家でいちばん好きだった場所はどこですか。'
 ];
-$('#nudgeBtn').onclick=async()=>{
-  $('#nudgeBtn').disabled=true;
+async function doNudge(){
+  setBusy(true);
   try{
     let out=await chat(history.length?history:[{role:'user',content:'(まだ何も話していません。きっかけをください)'}],NUDGE_SYS,200);
     if(out===null)out=MOCK_NUDGES[Math.floor(Math.random()*MOCK_NUDGES.length)];
     addMsg('assistant',out);
     history.push({role:'assistant',content:out});
   }catch(e){addMsg('assistant','(通信エラー: '+e.message+')');}
-  $('#nudgeBtn').disabled=false;
+  setBusy(false);
 };
 
 const LETTER_SYS=`これまでの会話(顔写真が含まれることもある)から、北海道に住む孫が、岐阜に住む祖母(昨年祖父を亡くした。スマホを持っておらず、このお便りは声で読み上げられ、大きな文字で表示される)へ送る短いお便りを3案、作ってください。
@@ -192,8 +242,8 @@ function mockLetters(){
 }
 
 async function generateLetters(){
-  if(history.filter(m=>m.role==='user').length===0){addMsg('assistant','まずは一言だけでも、話してみてください。「きっかけをもらう」からでも大丈夫。');return;}
-  $('#makeBtn').disabled=true;
+  if(history.filter(m=>m.role==='user').length===0){$('#letterModal').style.display='none';addMsg('assistant','まずは一言だけでも、話してみてください。「きっかけをもらう」からでも大丈夫。');return;}
+  setBusy(true);
   let letters;
   try{
     const msgs=history.concat([{role:'user',content:'ここまでの気持ちを、お便り3案にしてください。'}]);
@@ -207,11 +257,43 @@ async function generateLetters(){
     d.onclick=()=>{document.querySelectorAll('.letter').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');$('#editArea').value=t;$('#sendBtn').disabled=false;};
     box.appendChild(d);
   });
-  $('#letterSec').style.display='block';
-  $('#letterSec').scrollIntoView({behavior:'smooth'});
-  $('#makeBtn').disabled=false;
+  $('#composeSec').style.display='none';
+  $('#pickSec').style.display='block';
+  $('#letterModal').style.display='flex';
+  setBusy(false);
 }
-$('#makeBtn').onclick=generateLetters;
+let composeStream=null;
+async function openCompose(){
+  $('#letterModal').style.display='flex';
+  $('#composeSec').style.display='block';
+  $('#pickSec').style.display='none';
+  try{
+    composeStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640}});
+    $('#composeCam').srcObject=composeStream;
+  }catch(e){}
+}
+function stopCompose(){if(composeStream){composeStream.getTracks().forEach(t=>t.stop());composeStream=null;}}
+$('#composeGo').onclick=async()=>{
+  const hito=$('#hitokoto').value.trim();
+  const v=$('#composeCam');
+  if(composeStream&&v.videoWidth){
+    const cc=document.createElement('canvas');
+    cc.width=480;cc.height=480*v.videoHeight/v.videoWidth;
+    cc.getContext('2d').drawImage(v,0,0,cc.width,cc.height);
+    photoData=cc.toDataURL('image/jpeg',.8);
+    $('#shot').src=photoData;$('#shot').classList.remove('hid');
+    history.push({role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:'image/jpeg',data:photoData.split(',')[1]}},
+      {type:'text',text:hito?('いまのひと言: '+hito):'(いまの顔を添えます)'}
+    ]});
+  }else if(hito){
+    history.push({role:'user',content:'いまのひと言: '+hito});
+  }
+  if(hito)addMsg('user',hito);
+  stopCompose();
+  await generateLetters();
+};
+$('#makeBtn').onclick=openCompose;
 
 $('#camBtn').onclick=async()=>{
   try{
@@ -234,9 +316,11 @@ $('#sendBtn').onclick=async()=>{
   const text=$('#editArea').value.trim();
   if(!text)return;
   await fetch('/api/letter',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text,photo:photoData})});
-  $('#sentMark').classList.remove('hid');
-  $('#sentMark').scrollIntoView({behavior:'smooth'});
+  $('#letterModal').style.display='none';
+  addMsg('assistant','お便り、届けました。読み上げられている頃です。またいつでも。');
 };
+$('#closeModal').onclick=()=>{stopCompose();$('#letterModal').style.display='none';};
+$('#closeModal2').onclick=()=>{$('#letterModal').style.display='none';};
 
 // お返事ポーリング
 setInterval(async()=>{
@@ -256,7 +340,7 @@ setInterval(async()=>{
 
 // 顔から読み取る: 言葉の代わりに、いまの顔を見てもらう
 let faceStream=null;
-$('#faceBtn').onclick=async()=>{
+async function doFace(){
   try{
     faceStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640}});
     $('#faceCam').srcObject=faceStream;
@@ -272,6 +356,7 @@ $('#faceSnap').onclick=async()=>{
   c2.getContext('2d').drawImage(v,0,0,c2.width,c2.height);
   const dataUrl=c2.toDataURL('image/jpeg',.8);
   closeFace();
+  setBusy(true);
   photoData=dataUrl;
   $('#shot').src=dataUrl;$('#shot').classList.remove('hid');
   addMsg('user','(言葉の代わりに、いまの顔を見てもらう)');
@@ -286,7 +371,25 @@ $('#faceSnap').onclick=async()=>{
     history.push({role:'assistant',content:out});
     await generateLetters();
   }catch(e){addMsg('assistant','(通信エラー: '+e.message+')');}
+  setBusy(false);
 };
+
+// デモ用サンプル便り
+const DEMOS={
+ happy:{text:'おばあちゃん、聞いて。今日ね、仕事で作ったものが初めて人に褒められたんだよ。一番に知らせたくなりました。',emotion:'happy',highlight:'初めて褒められた'},
+ sad:{text:'ゆうべ、おじいちゃんの夢を見たよ。少しだけ泣きました。でも、なんだかあったかい朝です。',emotion:'sad',highlight:'おじいちゃんの夢'},
+ warm:{text:'こっちは元気にやっとるよ。おばあちゃんの茶碗蒸しが恋しい季節になってきました。また岐阜に帰るね。',emotion:'warm',highlight:'茶碗蒸し'}
+};
+document.querySelectorAll('[data-demo]').forEach(btn=>{
+  const orig=btn.textContent;
+  btn.onclick=async()=>{
+    await fetch('/api/letter',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(DEMOS[btn.dataset.demo])});
+    btn.textContent='送信しました ✓';
+    setTimeout(()=>btn.textContent=orig,1600);
+  };
+});
+
+showChips();
 
 // mic (Chrome)
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
