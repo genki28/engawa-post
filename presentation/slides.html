@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>えんがわポスト — 発表スライド</title>
+<style>
+:root{--paper:#faf6ef;--ink:#3a3226;--accent:#b5623a;--soft:#e0d5bd;--sub:#8a7d68}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:#2a2118;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;color:var(--ink);overflow:hidden}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;padding:6vh 7vw;background:
+  radial-gradient(900px 420px at 85% -8%, #fdeeda 0%, rgba(253,238,218,0) 60%),
+  linear-gradient(#faf6ef 0%, #f4ecdd 100%)}
+.slide.on{display:flex}
+.kicker{font-size:2.2vh;color:var(--accent);letter-spacing:.25em;font-family:sans-serif;margin-bottom:1vh}
+h1{font-size:6vh;margin:0 0 1vh;letter-spacing:.06em}
+h1 .red{color:var(--accent)}
+.sub{font-size:2.6vh;color:var(--sub);margin-bottom:3.5vh}
+.cols{display:flex;gap:4vw;flex:1;min-height:0}
+.col{flex:1}
+h2{font-size:2.6vh;color:var(--accent);letter-spacing:.15em;border-bottom:1px solid var(--soft);padding-bottom:.8vh;margin:0 0 1.6vh}
+p,li{font-size:2.7vh;line-height:1.75;margin:0 0 1.2vh}
+ul{margin:0;padding-left:1.2em}
+.big{font-size:4.6vh;line-height:1.6;margin:2vh 0}
+.big b{color:var(--accent)}
+.tag{display:inline-block;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:.3vh 1.4vh;font-size:2vh;font-family:sans-serif;margin:0 .6vh .8vh 0}
+.foot{position:absolute;bottom:2.5vh;right:3vw;color:var(--sub);font-size:1.8vh;font-family:sans-serif}
+.stamp{position:absolute;top:5vh;right:5vw;width:8vh;height:8vh;line-height:8vh;text-align:center;border:.5vh solid #c0392b;border-radius:50%;color:#c0392b;font-size:4vh;transform:rotate(8deg);opacity:.8}
+.strike{color:var(--sub);text-decoration:line-through;text-decoration-color:#c0392b}
+.arrow{color:var(--accent);font-weight:bold}
+.flow{font-size:2.5vh;line-height:2}
+.note-sm{font-size:2vh;color:var(--sub)}
+</style>
+</head>
+<body>
+
+<section class="slide on">
+  <div class="stamp">縁</div>
+  <div class="kicker">テーマ解釈 / 課題</div>
+  <h1>「顔を知る、たった一人」は<br>岐阜の<span class="red">祖母</span>と、<span class="red">私</span>でした</h1>
+  <div class="cols">
+    <div class="col">
+      <h2>解釈</h2>
+      <p>マスに向けない。<b>顔が浮かぶ実在の一人</b>の、実際の悩みだけを突き刺す。</p>
+      <p class="note-sm"><span class="strike">汎用の見守りアプリ</span> <span class="strike">表情分析ツール</span> — 一般解は捨てて、いちばん具体的に語れる実話を選んだ</p>
+      <h2 style="margin-top:2vh">実話</h2>
+      <p>昨年、祖父が亡くなった。岐阜の祖母は、家族が来ると嬉しそうで、<b>でもどこか悲しそうな顔</b>をしていた。</p>
+    </div>
+    <div class="col">
+      <h2>悩みは二層 + 制約</h2>
+      <ul>
+        <li>言葉にすると<b>涙が出て</b>、電話では話せない</li>
+        <li>そもそも連絡が<b>億劫</b>で、一歩が出ない</li>
+        <li>祖母は<b>スマホを持っていない</b>。テレビ電話は「同期・言葉必須」で、この悩みに合わない</li>
+      </ul>
+      <p class="big">手段はあるのに、<br><b>言葉が出ないから送れない</b></p>
+    </div>
+  </div>
+  <div class="foot">1 / 3 — えんがわポスト</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">アイデア / 価値</div>
+  <h1><span class="red">えんがわポスト</span> — 非同期・言葉不要の、第3の連絡手段</h1>
+  <div class="cols">
+    <div class="col">
+      <h2>何を作ったか</h2>
+      <p>AIが<b>顔を読み、傾聴し、咀嚼して</b>、言葉にならない想いを短い「お便り」にする。祖母の手元の<b>スタックチャン</b>が頷きながら読み上げ、祖母は<b>顔だけ</b>で返せる。</p>
+      <h2 style="margin-top:2vh">嬉しさ</h2>
+      <p>送れなかった便りが<b>30秒で送れる</b>。億劫な日はAIが口火を切る。悲しみは消さず、想いだけが届く。</p>
+    </div>
+    <div class="col">
+      <h2>他と違うポイント</h2>
+      <p>BOCCO emo・まごチャンネルなど既存の見守りが発明したのは<b>「配達の箱」</b>。</p>
+      <p class="big">私が解いたのは<br><b>ポストの前で固まる、<br>送り手の心</b></p>
+      <p class="note-sm">プロンプトは祖母一人にハードコード — n=1最適化そのものがテーマの回収。受信面(箱)は差し替え可能な設計。</p>
+    </div>
+  </div>
+  <div class="foot">2 / 3 — えんがわポスト</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">体験 / デモ</div>
+  <h1>顔を見せるだけで、<span class="red">縁側</span>まで届く</h1>
+  <div class="cols">
+    <div class="col">
+      <h2>デモの流れ</h2>
+      <p class="flow">
+        ① 顔を見せる <span class="arrow">→</span> AIが表情から口火を切る<br>
+        ② 対話を咀嚼 <span class="arrow">→</span> 便箋にお便り3案<br>
+        ③ 送信 <span class="arrow">→</span> スタックチャンが顔写真を映し、<b>感情で首を振り分けて</b>読み上げ<br>
+        ④ 祖母は顔タップ <span class="arrow">→</span> <b>顔だけのお返事</b>+AIの一言が孫へ
+      </p>
+    </div>
+    <div class="col">
+      <h2>現在地</h2>
+      <div>
+        <span class="tag">Web通し 動作</span><span class="tag">感情リアクション</span><span class="tag">vision顔読み</span><span class="tag">実機受信</span><span class="tag">GitHub公開</span>
+      </div>
+      <h2 style="margin-top:2.4vh">あえて削ったもの</h2>
+      <p>音声通話・既読・複数宛先・汎用化 — <b>たった一人に集中</b>するため。</p>
+      <h2 style="margin-top:2.4vh">これから</h2>
+      <p>LTE化して岐阜の縁側に置く。祖母の<b>祖父の思い出の聞き書き</b>を、家族のアーカイブに。</p>
+    </div>
+  </div>
+  <div class="foot">3 / 3 — えんがわポスト</div>
+</section>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];let i=0;
+function go(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,k)=>s.classList.toggle('on',k===i));}
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter')go(i+1);if(e.key==='ArrowLeft')go(i-1);});
+addEventListener('click',e=>go(i+(e.clientX>innerWidth/2?1:-1)));
+</script>
+</body>
+</html>
