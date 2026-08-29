@@ -4,11 +4,41 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// .env 読み込み(依存ゼロ)
+try {
+  for (const line of fs.readFileSync(path.join(__dirname, '.env'), 'utf8').split('\n')) {
+    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/);
+    if (m && m[2] && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+  }
+} catch (e) {}
+
 const PORT = process.env.PORT || 8787;
 const KEY = process.env.ANTHROPIC_API_KEY || '';
 const MODEL = process.env.MODEL || 'claude-sonnet-4-5';
 
 let latestLetter = null; // {text, photo, ts}
+let latestReplyPending = false;
+
+async function publishReply(photo, text, from) {
+  let note = text || null;
+  if (!note && KEY && photo) {
+    try {
+      const b64 = photo.split(',')[1];
+      const mt = photo.slice(5, photo.indexOf(';')) || 'image/jpeg';
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: MODEL, max_tokens: 120, messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: mt, data: b64 } },
+          { type: 'text', text: 'この写真は、孫に「顔だけのお返事」を送ったおばあちゃんの今の顔です。孫へ、この顔の様子をそっと伝える一言(30字以内)を、決めつけず、あたたかく。一言のみを出力。' }
+        ] }] })
+      });
+      const j = await r.json();
+      if (r.ok) note = j.content.map(c => c.text || '').join('').trim();
+    } catch (e) {}
+  }
+  latestReply = { photo, text: note, ts: Date.now(), from: from || 'web' };
+}
 let latestReply = null;  // {photo, ts}
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' };
@@ -65,15 +95,17 @@ const server = http.createServer(async (req, res) => {
       const chunks = [];
       for await (const c of req) chunks.push(c);
       const buf = Buffer.concat(chunks);
-      latestReply = { photo: 'data:image/jpeg;base64,' + buf.toString('base64'), ts: Date.now(), from: 'stackchan' };
-      return json(res, 200, { ok: true });
+      json(res, 200, { ok: true });
+      publishReply('data:image/jpeg;base64,' + buf.toString('base64'), null, 'stackchan');
+      return;
     }
 
     // お返事(祖母→孫)
     if (u.pathname === '/api/reply' && req.method === 'POST') {
-      latestReply = await readBody(req);
-      latestReply.ts = Date.now();
-      return json(res, 200, { ok: true, ts: latestReply.ts });
+      const b = await readBody(req);
+      json(res, 200, { ok: true });
+      publishReply(b.photo, b.text, 'web');
+      return;
     }
     if (u.pathname === '/api/reply') {
       const since = Number(u.searchParams.get('since') || 0);

@@ -8,8 +8,8 @@
 #include "esp_camera.h"
 
 // ==== 会場で書き換える設定 ====
-const char* WIFI_SSID  = "YOUR_WIFI_SSID";
-const char* WIFI_PASS  = "YOUR_WIFI_PASS";
+const char* WIFI_SSID  = "Deeptech-CORE";
+const char* WIFI_PASS  = "deeptechcore";
 const char* SERVER_URL = "http://192.168.0.10:8787";  // Macで `ipconfig getifaddr en0` したIP
 // ================================
 

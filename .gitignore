@@ -2,3 +2,5 @@
 node_modules/
 app/_old/
 _to_delete/
+app/.env
+.env
