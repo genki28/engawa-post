@@ -12,6 +12,10 @@
 const char* WIFI_SSID  = "Deeptech-CORE";
 const char* WIFI_PASS  = "deeptechcore";
 const char* SERVER_URL = "http://192.168.96.15:8787";
+// サーボ(物理首振り)。Takao-Base(CoreS3)のPort C想定。動かなければピン変更 or USE_SERVO 0
+#define USE_SERVO 1
+#define SERVO_TILT_PIN 18   // 縦(うなずき)
+#define SERVO_PAN_PIN  17   // 横
 // ================================
 
 #define CAM_XCLK 2
@@ -31,9 +35,35 @@ const char* SERVER_URL = "http://192.168.96.15:8787";
 
 String   lastTs = "0", letterText = "", highlightText = "", mood = "warm";
 bool     talking = false, mouthOpen = false, blinkNow = false, camOk = false;
-int      camErr = 0, faceY = 0;
+int      camErr = 0, faceY = 0, textScroll = 0;
 unsigned long talkEnd = 0, lastPoll = 0, lastAnim = 0, nextBlink = 3000, blinkEnd = 0;
 uint32_t BG, INK, CARD;
+
+#if USE_SERVO
+void servoUs(int pin, int deg) {
+  int us = 500 + (int)((long)deg * 2000 / 180);
+  uint32_t duty = (uint32_t)us * 65536UL / 20000UL;
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+  ledcWrite(pin, duty);
+#else
+  ledcWrite(pin == SERVO_TILT_PIN ? 6 : 7, duty);
+#endif
+}
+void servoInit() {
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+  ledcAttach(SERVO_TILT_PIN, 50, 16);
+  ledcAttach(SERVO_PAN_PIN, 50, 16);
+#else
+  ledcSetup(6, 50, 16); ledcAttachPin(SERVO_TILT_PIN, 6);
+  ledcSetup(7, 50, 16); ledcAttachPin(SERVO_PAN_PIN, 7);
+#endif
+  servoUs(SERVO_TILT_PIN, 90); servoUs(SERVO_PAN_PIN, 90);
+}
+void servoTilt(int deg) { servoUs(SERVO_TILT_PIN, deg); }
+#else
+void servoInit() {}
+void servoTilt(int deg) {}
+#endif
 
 void drawFace() {
   auto& d = M5.Display;
@@ -70,18 +100,28 @@ void drawFace() {
   d.endWrite();
 }
 
-void nod(int times, int amp, int stepDelay) {   // 首を縦に振る
+void nod(int times, int amp, int stepDelay) {   // 首を縦に振る(画面+サーボ)
   for (int t = 0; t < times; t++) {
+    servoTilt(72);
     for (int y = 0; y <= amp; y += 2) { faceY = y; drawFace(); delay(stepDelay); }
+    servoTilt(94);
     for (int y = amp; y >= 0; y -= 2) { faceY = y; drawFace(); delay(stepDelay); }
   }
+  servoTilt(90);
   faceY = 0; drawFace();
 }
 
+int maxScroll(const String& t) {
+  int lines = (int)(t.length() / 3) / 19 + 3;
+  int h = lines * 18 + (highlightText.length() ? 30 : 0);
+  int m = h - (240 - 138) + 10;
+  return m > 0 ? m : 0;
+}
 void drawText(const String& t) {
   auto& d = M5.Display;
+  d.setClipRect(0, 138, d.width(), d.height() - 138);
   d.fillRect(0, 138, d.width(), d.height() - 138, CARD);
-  int y = 144;
+  int y = 144 - textScroll;
   if (highlightText.length() > 0) {
     d.setFont(&fonts::efontJA_24);
     d.setTextColor(d.color888(181, 98, 58), CARD);   // 強調は少し赤茶
@@ -94,9 +134,10 @@ void drawText(const String& t) {
   d.setCursor(8, y);
   d.setTextWrap(true);
   d.print(t);
+  d.clearClipRect();
 }
 
-void statusText(const String& t) { highlightText = ""; drawText(t); }
+void statusText(const String& t) { highlightText = ""; textScroll = 0; drawText(t); }
 
 void startTalking() {
   talking = true;
@@ -108,9 +149,10 @@ void startTalking() {
 }
 
 void onLetter() {
+  textScroll = 0;
   drawText(letterText);
   if (mood == "happy")      nod(3, 10, 12);       // 嬉しい: 3回大きく頷く
-  else if (mood == "sad") { faceY = 8; drawFace(); }  // 悲しい: うつむいたまま読む
+  else if (mood == "sad") { faceY = 8; servoTilt(74); drawFace(); }  // 悲しい: うつむいたまま読む
   else                      nod(1, 6, 14);        // warm: ひとつ頷く
   startTalking();
 }
@@ -206,6 +248,7 @@ void setup() {
   INK  = d.color888(58, 50, 38);
   CARD = d.color888(255, 253, 246);
   d.fillScreen(BG);
+  servoInit();
   drawFace();
   statusText("Wi-Fi接続中: " + String(WIFI_SSID));
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -226,12 +269,25 @@ void loop() {
   if (blinkNow && now > blinkEnd)   { blinkNow = false; nextBlink = now + 2200 + (esp_random() % 2600); drawFace(); }
 
   if (talking) {
-    if (now > talkEnd) { talking = false; mouthOpen = false; if (mood == "sad") faceY = 0; drawFace(); }
+    if (now > talkEnd) { talking = false; mouthOpen = false; if (mood == "sad") { faceY = 0; servoTilt(90); } drawFace(); }
     else if (now - lastAnim > 160) { lastAnim = now; mouthOpen = !mouthOpen; drawFace(); }
   }
 
-  // 顔エリアのタップ or 中央ボタンでお返事撮影 / 左ボタンでもう一度
+  // 顔タップ=お返事撮影 / テキスト部を指でなぞる=スクロール / 左ボタン=もう一度
   auto t = M5.Touch.getDetail();
+  static int dragPrevY = -1;
+  if (t.isPressed() && t.y >= 138) {
+    if (dragPrevY >= 0 && t.y != dragPrevY) {
+      textScroll -= (t.y - dragPrevY);
+      if (textScroll < 0) textScroll = 0;
+      int mx = maxScroll(letterText);
+      if (textScroll > mx) textScroll = mx;
+      drawText(letterText);
+    }
+    dragPrevY = t.y;
+  } else {
+    dragPrevY = -1;
+  }
   if (t.wasPressed() && t.y < 138 && !talking) sendFaceReply();
   if (M5.BtnB.wasPressed()) sendFaceReply();
   if (M5.BtnA.wasPressed() && letterText.length() > 0) onLetter();
