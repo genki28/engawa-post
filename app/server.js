@@ -77,11 +77,28 @@ const server = http.createServer(async (req, res) => {
     if (u.pathname === '/api/letter/plain') {
       const since = u.searchParams.get('since') || '0';
       res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
-      if (latestLetter && String(latestLetter.ts) !== since) return res.end(latestLetter.ts + '\n' + latestLetter.text);
+      if (latestLetter && String(latestLetter.ts) !== since) return res.end(latestLetter.ts + '\n' + (latestLetter.emotion || 'warm') + '\n' + (latestLetter.highlight || '') + '\n' + latestLetter.text);
       return res.end('');
     }
     if (u.pathname === '/api/letter' && req.method === 'POST') {
-      latestLetter = await readBody(req);
+      const bdy = await readBody(req);
+      if (!bdy.emotion && KEY && bdy.text) {
+        try {
+          const r = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({ model: MODEL, max_tokens: 150, messages: [{ role: 'user', content: '次のお便りの雰囲気を判定し、JSONのみ出力: {"emotion":"happy|sad|warm","highlight":"本文から抜き出した、いちばん気持ちのこもった短い一節(12文字以内)"}\n---\n' + bdy.text }] })
+          });
+          const j = await r.json();
+          if (r.ok) {
+            const m = j.content.map(c => c.text || '').join('').match(/\{[\s\S]*\}/);
+            if (m) { const p = JSON.parse(m[0]); bdy.emotion = p.emotion; bdy.highlight = p.highlight; }
+          }
+        } catch (e) {}
+      }
+      bdy.emotion = bdy.emotion || 'warm';
+      bdy.highlight = bdy.highlight || '';
+      latestLetter = bdy;
       latestLetter.ts = Date.now();
       return json(res, 200, { ok: true, ts: latestLetter.ts });
     }

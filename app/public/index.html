@@ -111,8 +111,17 @@ function addMsg(role,text){
   d.scrollIntoView({behavior:'smooth',block:'end'});
 }
 
+// API送信時、画像は最新の1枚だけ残し古いものは省略(トークン節約)
+function sanitize(msgs){
+  let lastImg=-1;
+  msgs.forEach((m,i)=>{if(Array.isArray(m.content)&&m.content.some(c=>c.type==='image'))lastImg=i;});
+  return msgs.map((m,i)=>{
+    if(!Array.isArray(m.content)||i===lastImg)return m;
+    return {role:m.role,content:m.content.map(c=>c.type==='image'?{type:'text',text:'(前の顔写真は省略)'}:c)};
+  });
+}
 async function chat(messages,system,maxTokens){
-  const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages,system,maxTokens})});
+  const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:sanitize(messages),system,maxTokens})});
   const j=await r.json();
   if(j.error)throw new Error(JSON.stringify(j.error).slice(0,200));
   return j.mock?null:j.text;
